@@ -1,5 +1,7 @@
+// DATA
 const mysql = require('mysql2');
 
+// CONNECTION
 const connection = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -12,4 +14,5 @@ connection.connect((err) => {
     console.log('Connected to MySQL');
 });
 
+// EXPORT
 module.exports = connection;

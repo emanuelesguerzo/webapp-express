@@ -1,28 +1,26 @@
+// DATA
 const connection = require('../data/db');
 
 // INDEX
-const index = (req, res) => {
+const index = (req, res, next) => {
 
     const sql = 'SELECT * FROM `movies`;'
 
-    connection.query(sql, (err, results) => {
+    connection.query(sql, (err, movies) => {
 
-        if (err) {
-            return res.status(500).json({
-                message: 'Internal Server Error'
-            })
-        } else {
-            return res.status(200).json({
-                status: 'success',
-                data: results,
-            })
-        }
+        if (err) return next(new Error("Internal Server Error"));
+
+        return res.status(200).json({
+            status: 'success',
+            data: movies,
+        })
 
     })
+
 }
 
 // SHOW
-const show = (req, res) => {
+const show = (req, res, next) => {
 
     const id = req.params.id;
     const sql = 'SELECT * FROM `movies` WHERE id = ?;';
@@ -35,41 +33,33 @@ const show = (req, res) => {
 
     connection.query(sql, [id], (err, movies) => {
 
-        if (err) {
-            return res.status(500).json({
-                message: 'Internal Server Error'
-            })
-        }
+        if (err) return next(new Error("Internal Server Error"));
 
         if (movies.length === 0) {
-            return res.status(404).json({
-                status: "fail",
-                message: "Movie Not Found",
-            });
+            const notFound = new Error(); 
+            notFound.status = 404;
+            return next(notFound); 
         }
 
         connection.query(sqlReviews, [id], (err, reviews) => {
 
-            if (err) {
-                return res.status(500).json({
-                    message: 'Internal Server Error'
-                })
-            } else {
-                return res.status(200).json({
-                    status: 'success',
-                    data: {
-                        ...movies[0],
-                        reviews,
-                    }
-                })
-            }
+            if (err) return next(new Error("Internal Server Error"));
+
+            return res.status(200).json({
+                status: 'success',
+                data: {
+                    ...movies[0],
+                    reviews,
+                }
+            })
 
         })
-        
+
     })
 
 }
 
+// EXPORT
 module.exports = {
     index,
     show,

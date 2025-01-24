@@ -3,27 +3,36 @@ const connection = require('../data/db');
 
 // INDEX
 const index = (req, res, next) => {
+	const filters = req.query;
 
-    const sql = 'SELECT * FROM `movies`;'
+	let sql = 'SELECT * FROM movies';
+	const params = [];
+	
+	if(filters.search) {
+	
+		sql += `
+		WHERE title LIKE ?;
+		`;
+		params.push(`%${filters.search}%`);
+		
+	} 
 
-    connection.query(sql, (err, movies) => {
+	connection.query(sql, [params], (err, movies) => {
+	    if (err) return next(new Error("Internal Server Error"));
 
-        if (err) return next(new Error("Internal Server Error"));
+		return res.status(200).json({
+		    status: 'success',
+	        data: movies,
+	    })
 
-        return res.status(200).json({
-            status: 'success',
-            data: movies,
-        })
-
-    })
-
+	 })
 }
 
 // SHOW
 const show = (req, res, next) => {
 
     const id = req.params.id;
-    const sql = 'SELECT * FROM `movies` WHERE id = ?;';
+    const sql = 'SELECT * FROM movies WHERE id = ?;';
     const sqlReviews = `
     SELECT reviews.* 
     FROM reviews
@@ -36,10 +45,11 @@ const show = (req, res, next) => {
         if (err) return next(new Error("Internal Server Error"));
 
         if (movies.length === 0) {
-            const notFound = new Error(); 
-            notFound.status = 404;
-            return next(notFound); 
-        }
+            return res.status(404).json({
+              status: "fail",
+              message: "Movie Not Found",
+            });
+          }
 
         connection.query(sqlReviews, [id], (err, reviews) => {
 

@@ -6,7 +6,7 @@ const router = express.Router();
 // ROUTERS
 router.get('/', moviesController.index)
 
-router.get('/:id', moviesController.show)
+router.get('/:slug', moviesController.show)
 
 // EXPORT
 module.exports = router;

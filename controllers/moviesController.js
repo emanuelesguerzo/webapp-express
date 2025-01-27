@@ -3,6 +3,7 @@ const connection = require('../data/db');
 
 // INDEX
 const index = (req, res, next) => {
+    
     const filters = req.query;
 
     let sql = 'SELECT * FROM movies';
@@ -42,16 +43,24 @@ const index = (req, res, next) => {
 // SHOW
 const show = (req, res, next) => {
 
-    const id = req.params.id;
-    const sql = 'SELECT * FROM movies WHERE id = ?;';
+    const slug = req.params.slug;
+
+    const sql = `
+    SELECT movies.*, ROUND(AVG(reviews.vote), 1) as vote_avg
+    FROM movies
+    LEFT JOIN reviews
+    ON reviews.movie_id = movies.id
+    WHERE movies.slug = ?
+   `;
+
     const sqlReviews = `
     SELECT reviews.* 
     FROM reviews
     JOIN movies
     ON movies.id = reviews.movie_id
-    WHERE movies.id = ?;`
+    WHERE movies.slug = ?;`
 
-    connection.query(sql, [id], (err, movies) => {
+    connection.query(sql, [slug], (err, movies) => {
 
         if (err) return next(new Error("Internal Server Error"));
 
@@ -62,7 +71,7 @@ const show = (req, res, next) => {
             });
         }
 
-        connection.query(sqlReviews, [id], (err, reviews) => {
+        connection.query(sqlReviews, [slug], (err, reviews) => {
 
             if (err) return next(new Error("Internal Server Error"));
 

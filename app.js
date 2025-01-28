@@ -15,6 +15,8 @@ app.use(cors({
 // STATIC
 app.use(express.static('public'));
 
+app.use(express.json());
+
 // ROUTES
 app.use('/movies', moviesRouter);
 
